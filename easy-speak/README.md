@@ -2,7 +2,9 @@
 
 成人 AI 口语陪练：像聊天一样练习所选语言，上区给下一句灵感，下区只点评刚才的话。支持多供应商、语音输入与朗读、自定义材料训练、课程、收藏及复习。
 
-**项目完整介绍与使用说明见 [根目录 README](../README.md)。源码公开，仅按 [PolyForm Noncommercial 1.0.0](./LICENSE) 授权非商用使用、修改和分发。**
+**项目完整介绍与使用说明见 [根目录 README](../README.md)。采用 [Apache License 2.0](./LICENSE) 开源，允许商业使用、修改和分发，须遵守相应条款。**
+
+[简体中文](../README.md) · [English](../README.en.md) · [日本語](../README.ja.md) · [한국어](../README.ko.md) · [Español](../README.es.md) · [Français](../README.fr.md) · [Deutsch](../README.de.md)
 
 ## 本地开发
 

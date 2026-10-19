@@ -4,11 +4,13 @@
 
 # 轻松说 · EasySpeak
 
+**简体中文** · [English](./README.en.md) · [日本語](./README.ja.md) · [한국어](./README.ko.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [Deutsch](./README.de.md)
+
 **像跟朋友聊天一样，练习你想说的语言。**
 
 成人 AI 口语陪练 · 两个独立辅导区 · 多语言交流 · 自定义训练
 
-[快速开始](#快速开始) · [功能说明](./easy-speak/docs/features.md) · [开发规范](./easy-speak/CONTRIBUTING.md) · [非商用许可](./LICENSE)
+[快速开始](#快速开始) · [功能说明](./easy-speak/docs/features.md) · [开发规范](./easy-speak/CONTRIBUTING.md) · [Apache 2.0 许可](./LICENSE)
 
 </div>
 
@@ -16,7 +18,9 @@
 
 你可以选择熟悉语言和练习语言，使用自己的模型 API Key，也可以导入文章、简历、词汇或图片，围绕自己的材料练习。
 
-> **源码公开，禁止未经授权的商业使用。** 项目采用 PolyForm Noncommercial 1.0.0，允许在许可范围内非商用使用、修改和分发。由于存在用途限制，它属于 source-available（源码可用），不是 OSI 定义的开源软件。完整条款见 [LICENSE](./LICENSE)。
+> **采用 Apache License 2.0 开源，允许商业使用、修改和分发。** 使用和再分发时须遵守许可证、版权声明、修改标记及适用的 NOTICE 要求。完整条款见 [LICENSE](./LICENSE)。
+
+点击顶部语言名称切换 README。详细工程文档目前以中文为主；翻译说明不改变英文许可证原文的效力。
 
 ## 功能亮点
 
@@ -115,12 +119,13 @@ React 19 · TypeScript strict · Vite 6 · Lucide · PDF.js · Mammoth · ESLint
 
 ```text
 .
-├── README.md                 项目介绍与使用入口
-├── LICENSE                   非商用许可证原文
+├── README.md                 中文介绍与语言切换入口
+├── README.*.md               英 / 日 / 韩 / 西 / 法 / 德文介绍
+├── LICENSE                   Apache 2.0 许可证原文
 ├── NOTICE                    项目署名与许可提示
 ├── SECURITY.md               安全问题反馈约定
-├── Export-EasySpeak.ps1    生成排除凭据和缓存的源码包
-├── Start-EasySpeak.ps1     Windows 本机启动入口
+├── Export-EasySpeak.ps1      生成排除凭据和缓存的源码包
+├── Start-EasySpeak.ps1       Windows 本机启动入口
 └── easy-speak/               应用源码与文档
     ├── src/components/       界面组件
     ├── src/hooks/            会话、媒体与异步编排
@@ -181,8 +186,8 @@ npm run preview
 
 ## 参与贡献与许可
 
-欢迎在许可证允许范围内报告问题、完善文档和提交改进。接口命名、注释、类型、安全与检查要求见 [开发规范](./easy-speak/CONTRIBUTING.md)。反馈问题时请移除 API Key、个人材料和录音，安全问题请参考 [SECURITY.md](./SECURITY.md)。
+欢迎报告问题、完善文档和提交改进。接口命名、注释、类型、安全与检查要求见 [开发规范](./easy-speak/CONTRIBUTING.md)。反馈问题时请移除 API Key、个人材料和录音，安全问题请参考 [SECURITY.md](./SECURITY.md)。
 
-本项目原创部分采用 [PolyForm Noncommercial 1.0.0](./LICENSE)。个人非商用学习、自用练习以及许可允许的研究、修改和分发可以进行；售卖副本、收费陪练服务、商业产品集成等商业使用不在本许可授权范围内，须另行获得权利人的许可。分发时保留许可证及 [NOTICE](./NOTICE)，具体范围以许可证原文为准。
+本项目原创部分采用 [Apache License 2.0](./LICENSE)，允许商业使用、修改和分发。再分发时保留许可证及适用的版权 / [NOTICE](./NOTICE) 声明，对修改作出显著标记，并遵守许可证其他条件。许可证不授予项目商标使用权，也不提供担保，具体以原文为准。
 
-第三方依赖保持各自的许可证，不因本项目的非商用条款而改变，见 [第三方说明](./THIRD_PARTY_NOTICES.md)。
+第三方依赖保持各自的许可证，见 [第三方说明](./THIRD_PARTY_NOTICES.md)。

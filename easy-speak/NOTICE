@@ -1,10 +1,10 @@
 轻松说 / EasySpeak
 
-Required Notice: Copyright (c) 2026 轻松说项目贡献者。
+Copyright (c) 2026 EasySpeak contributors / 轻松说项目贡献者。
 
-项目原创部分采用 PolyForm Noncommercial License 1.0.0。
-完整许可见 LICENSE：https://polyformproject.org/licenses/noncommercial/1.0.0
-本授权不允许未经另行许可的商业使用；分发时保留许可证与本提示。
+项目原创部分采用 Apache License, Version 2.0。
+完整许可见 LICENSE：https://www.apache.org/licenses/LICENSE-2.0
+分发时保留许可证及适用的版权和署名声明，并遵守许可证其他条件。
 
 第三方组件按各自许可证提供，参见 THIRD_PARTY_NOTICES.md。
 项目名称不表示与任何模型、语音或框架供应商存在官方关联。

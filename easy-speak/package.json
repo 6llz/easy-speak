@@ -1,7 +1,7 @@
 {
   "name": "easy-speak",
   "description": "轻松说：面向成人的多语言 AI 口语陪练，支持双教练辅导与自定义训练。",
-  "license": "PolyForm-Noncommercial-1.0.0",
+  "license": "Apache-2.0",
   "version": "1.0.0",
   "private": true,
   "type": "module",

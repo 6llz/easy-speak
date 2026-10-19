@@ -4,9 +4,9 @@
 
 ## 授权与贡献
 
-采用标准 [PolyForm Noncommercial 1.0.0](../LICENSE)，官方原文下载地址为 <https://polyformproject.org/licenses/noncommercial/1.0.0.txt>。根目录与应用目录各放一份相同的 LICENSE / NOTICE，便于分发时保留许可。允许许可范围内的非商用使用、修改和分发；商业使用须另获权利人授权。第三方代码始终遵守其自身许可。
+采用标准 [Apache License 2.0](../LICENSE)，官方原文下载地址为 <https://www.apache.org/licenses/LICENSE-2.0.txt>。根目录与应用目录各放一份相同的 LICENSE / NOTICE，便于分发时保留许可。允许商业使用、修改和分发，须遵守许可证、版权声明、修改标记及适用的 NOTICE 要求。第三方代码始终遵守其自身许可。
 
-此类用途受限许可属于源码可用，不应标为 OSI 开源或自由商用。README 中的中文说明用于帮助阅读，授权以原文为准。[PolyForm 项目说明](https://polyformproject.org/about)
+当前版本不再附加非商用限制；此前许可保留在 Git 历史中。各语言 README 的许可说明用于帮助阅读，授权以英文许可证原文为准。[Apache 官方许可说明](https://www.apache.org/licenses/LICENSE-2.0)
 
 贡献者须有权提交相关内容，并同意以本项目相同许可提供贡献；不要将他人的私有代码、素材或凭据混入仓库。开发要求见 [CONTRIBUTING.md](../CONTRIBUTING.md)。
 
@@ -19,6 +19,8 @@
 ## 可分享的源码包
 
 根目录执行 `./Export-EasySpeak.ps1`，输出 `release/easy-speak-source.zip`。脚本只打包明确列出的源码、测试、公开资源、文档、锁文件与配置；不按整个工作目录递归打包。
+
+根 README 提供简体中文、英文、日文、韩文、西班牙文、法文和德文，顶部语言链接互相切换。六份翻译分别放在根目录 `README.en.md`、`README.ja.md`、`README.ko.md`、`README.es.md`、`README.fr.md`、`README.de.md`，均随源码包分发。工程规格文档目前仍以中文为主；文档语言不改变 App 的界面或练习语言设置。
 
 排除 `.env.local`、其他真实环境文件、`node_modules`、npm 缓存、`.openai`、运行日志、`dist`、Git 历史和签名文件。只含占位符的 `.env.example` 保留。遇到符号链接、已知本机 Key、常见真实密钥格式或私钥头时停止，不把命中内容输出到控制台。普通 Git 上传还必须依靠根目录与应用目录的 `.gitignore`，不要强制添加被忽略文件。
 

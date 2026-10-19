@@ -9,7 +9,9 @@ $sourceFiles = [Collections.Generic.List[IO.FileInfo]]::new()
 
 # 只允许明确的入口文件和源码目录，禁止把工作目录、环境文件或缓存整体归档。
 $requiredFiles = @(
-    'README.md', 'LICENSE', 'NOTICE', 'SECURITY.md', 'THIRD_PARTY_NOTICES.md',
+    'README.md', 'README.en.md', 'README.ja.md', 'README.ko.md',
+    'README.es.md', 'README.fr.md', 'README.de.md',
+    'LICENSE', 'NOTICE', 'SECURITY.md', 'THIRD_PARTY_NOTICES.md',
     '.gitignore', '.gitattributes', 'Start-EasySpeak.ps1', 'Export-EasySpeak.ps1',
     'easy-speak/README.md', 'easy-speak/LICENSE', 'easy-speak/NOTICE', 'easy-speak/CONTRIBUTING.md',
     'easy-speak/DEPLOYMENT.md', 'easy-speak/.editorconfig', 'easy-speak/.env.example',
