@@ -1,0 +1,26 @@
+# 凭据与机器配置。应用目录也维护自身的忽略规则。
+**/.env*
+!**/.env.example
+**/*.local
+**/node_modules/
+**/.npm-cache/
+**/.sites-runtime/
+**/.openai/
+**/dist/
+**/test-results/
+**/*.log
+**/*.tsbuildinfo
+release/
+*.zip
+*.tar.gz
+.DS_Store
+Thumbs.db
+
+# 移动打包时由开发者自行生成，不能随源码公开。
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+**/local.properties
