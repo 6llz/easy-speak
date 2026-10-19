@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./morrow/public/favicon.svg" width="76" height="76" alt="轻松说图标" />
+<img src="./easy-speak/public/favicon.svg" width="76" height="76" alt="轻松说图标" />
 
 # 轻松说 · EasySpeak
 
@@ -8,7 +8,7 @@
 
 成人 AI 口语陪练 · 两个独立辅导区 · 多语言交流 · 自定义训练
 
-[快速开始](#快速开始) · [功能说明](./morrow/docs/features.md) · [开发规范](./morrow/CONTRIBUTING.md) · [非商用许可](./LICENSE)
+[快速开始](#快速开始) · [功能说明](./easy-speak/docs/features.md) · [开发规范](./easy-speak/CONTRIBUTING.md) · [非商用许可](./LICENSE)
 
 </div>
 
@@ -41,7 +41,7 @@
 获取源码后，在项目目录执行：
 
 ```sh
-cd morrow
+cd easy-speak
 npm ci --cache .npm-cache
 npm run dev
 ```
@@ -57,7 +57,7 @@ npm run dev
 
 ### 可选：本机 MiniMax 代理
 
-除了在界面填 Key，也可以让本机开发服务保管 MiniMax 凭据。在 `morrow` 目录复制示例配置：
+除了在界面填 Key，也可以让本机开发服务保管 MiniMax 凭据。在 `easy-speak` 目录复制示例配置：
 
 ```sh
 # macOS / Linux
@@ -71,7 +71,7 @@ Copy-Item .env.example .env.local
 
 只在 `.env.local` 填写 `MINIMAX_API_KEY`，然后重启开发服务；**不要使用 `VITE_` 前缀，也不要提交该文件**。浏览器只拿到连接状态和占位值，真实服务端 Key 不进入页面产物。
 
-代理仅监听回环地址，用于本机开发；静态部署不包含这项服务，不能作为公网共享后端。供应商设置、接口和限制见 [接入文档](./morrow/docs/providers.md)。
+代理仅监听回环地址，用于本机开发；静态部署不包含这项服务，不能作为公网共享后端。供应商设置、接口和限制见 [接入文档](./easy-speak/docs/providers.md)。
 
 ### Windows 后台启动
 
@@ -81,7 +81,7 @@ Copy-Item .env.example .env.local
 .\Start-EasySpeak.ps1
 ```
 
-脚本会复用已有健康服务或隐藏启动开发服务，日志留在项目内。它不配置开机自启。旧入口 `Start-Morrow.ps1` 继续兼容。
+脚本会复用已有健康服务或隐藏启动开发服务，日志留在项目内。它不配置开机自启，直接从 `easy-speak/` 应用目录启动。
 
 ## 工作原理
 
@@ -107,7 +107,7 @@ flowchart LR
 - **API Key**：个人直连 Key 保存在当前标签页的 `sessionStorage`，不是设备安全保险箱；本机代理 Key 保存在忽略的 `.env.local`。长期偏好、会话导出不含 Key。
 - **练习数据**：历史、收藏和显式保存的训练模板保存在当前浏览器，没有账号、云同步或自建数据库；清理浏览器数据前请先导出。
 
-当前没有原生 Android / iOS 工程。手机安装包所需的权限与真机验收见 [权限说明](./morrow/docs/permissions.md) 和 [打包指南](./morrow/docs/packaging.md)。
+当前没有原生 Android / iOS 工程。手机安装包所需的权限与真机验收见 [权限说明](./easy-speak/docs/permissions.md) 和 [打包指南](./easy-speak/docs/packaging.md)。
 
 ## 技术与目录
 
@@ -121,7 +121,7 @@ React 19 · TypeScript strict · Vite 6 · Lucide · PDF.js · Mammoth · ESLint
 ├── SECURITY.md               安全问题反馈约定
 ├── Export-EasySpeak.ps1    生成排除凭据和缓存的源码包
 ├── Start-EasySpeak.ps1     Windows 本机启动入口
-└── morrow/                   应用目录，保留旧路径以兼容现有环境
+└── easy-speak/               应用源码与文档
     ├── src/components/       界面组件
     ├── src/hooks/            会话、媒体与异步编排
     ├── src/lib/              模型、语音、数据与材料处理
@@ -132,11 +132,11 @@ React 19 · TypeScript strict · Vite 6 · Lucide · PDF.js · Mammoth · ESLint
     └── CONTRIBUTING.md       代码规范与贡献要求
 ```
 
-项目显示名称已改为「轻松说」，npm 包名为 `easy-speak`。目录 `morrow/`、历史存储键 `morrow:*` 和本机请求标记保留兼容，更新名称不会清空已有记录。
+中文名称为「轻松说」，英文名称为 EasySpeak，应用目录和 npm 包名均为 `easy-speak`。历史存储键 `morrow:*` 和本机请求标记保留兼容，目录改名不会清空已有记录。
 
 ## 开发与验证
 
-在 `morrow` 目录运行：
+在 `easy-speak` 目录运行：
 
 ```sh
 npm run format:check
@@ -146,7 +146,7 @@ npm run build
 npm run preview
 ```
 
-生产页面输出到 `morrow/dist`，`preview` 只用于本地检查。测试记录与未覆盖的真实设备边界见 [验证记录](./morrow/docs/verification.md)。
+生产页面输出到 `easy-speak/dist`，`preview` 只用于本地检查。测试记录与未覆盖的真实设备边界见 [验证记录](./easy-speak/docs/verification.md)。
 
 ### 生成可分享的源码包
 
@@ -160,16 +160,16 @@ npm run preview
 
 ## 更多文档
 
-| 文档                                                                                             | 内容                              |
-| ------------------------------------------------------------------------------------------------ | --------------------------------- |
-| [功能与验收](./morrow/docs/features.md)                                                          | 聊天、双教练、学习、收藏与主题    |
-| [架构与数据流](./morrow/docs/architecture.md)                                                    | 分层、状态、取消、存储与兼容策略  |
-| [供应商接入](./morrow/docs/providers.md)                                                         | 模型、语音、代理、请求限制与隐私  |
-| [自定义训练](./morrow/docs/custom-training.md)                                                   | 自由要求、文件、图片与模板        |
-| [语言组合](./morrow/docs/languages.md) / [音色](./morrow/docs/voices.md)                         | 语言范围、音色名字与切换规则      |
-| [停顿与恢复](./morrow/docs/conversation-timing.md) / [声音排查](./morrow/docs/audio-playback.md) | 等待时长、点评恢复与蓝牙播放      |
-| [手机测试与部署](./morrow/DEPLOYMENT.md) / [打包](./morrow/docs/packaging.md)                    | 个人 Key 直连、原生适配与后端边界 |
-| [安全审查](./morrow/docs/security-review.md) / [发布准备](./morrow/docs/source-release.md)       | 已修问题、已知风险与源码分享范围  |
+| 文档                                                                                                     | 内容                              |
+| -------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| [功能与验收](./easy-speak/docs/features.md)                                                              | 聊天、双教练、学习、收藏与主题    |
+| [架构与数据流](./easy-speak/docs/architecture.md)                                                        | 分层、状态、取消、存储与兼容策略  |
+| [供应商接入](./easy-speak/docs/providers.md)                                                             | 模型、语音、代理、请求限制与隐私  |
+| [自定义训练](./easy-speak/docs/custom-training.md)                                                       | 自由要求、文件、图片与模板        |
+| [语言组合](./easy-speak/docs/languages.md) / [音色](./easy-speak/docs/voices.md)                         | 语言范围、音色名字与切换规则      |
+| [停顿与恢复](./easy-speak/docs/conversation-timing.md) / [声音排查](./easy-speak/docs/audio-playback.md) | 等待时长、点评恢复与蓝牙播放      |
+| [手机测试与部署](./easy-speak/DEPLOYMENT.md) / [打包](./easy-speak/docs/packaging.md)                    | 个人 Key 直连、原生适配与后端边界 |
+| [安全审查](./easy-speak/docs/security-review.md) / [发布准备](./easy-speak/docs/source-release.md)       | 已修问题、已知风险与源码分享范围  |
 
 ## 当前边界
 
@@ -181,7 +181,7 @@ npm run preview
 
 ## 参与贡献与许可
 
-欢迎在许可证允许范围内报告问题、完善文档和提交改进。接口命名、注释、类型、安全与检查要求见 [开发规范](./morrow/CONTRIBUTING.md)。反馈问题时请移除 API Key、个人材料和录音，安全问题请参考 [SECURITY.md](./SECURITY.md)。
+欢迎在许可证允许范围内报告问题、完善文档和提交改进。接口命名、注释、类型、安全与检查要求见 [开发规范](./easy-speak/CONTRIBUTING.md)。反馈问题时请移除 API Key、个人材料和录音，安全问题请参考 [SECURITY.md](./SECURITY.md)。
 
 本项目原创部分采用 [PolyForm Noncommercial 1.0.0](./LICENSE)。个人非商用学习、自用练习以及许可允许的研究、修改和分发可以进行；售卖副本、收费陪练服务、商业产品集成等商业使用不在本许可授权范围内，须另行获得权利人的许可。分发时保留许可证及 [NOTICE](./NOTICE)，具体范围以许可证原文为准。
 

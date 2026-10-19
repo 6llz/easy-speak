@@ -1,6 +1,6 @@
 # 手机测试与部署交接
 
-更新时间：2026-10-18。适用源码目录：Windows `D:\Project\EnglishTalk\morrow`；传到 Linux 后以包含 `package.json` 的项目根目录为准。
+更新时间：2026-10-18。适用源码目录：Windows `D:\Project\EnglishTalk\easy-speak`；传到 Linux 后以包含 `package.json` 的项目根目录为准。
 
 ## 1. 本次采用的方案
 
@@ -29,7 +29,7 @@
 4. 在个人直连模式中，不再依赖电脑的 `/api/v1/minimax`；缺少本机代理时不得把 `127.0.0.1:5173` 当成远程接口，也不得自动索取开发机的凭据。
 5. 生成可安装的 Android debug APK，附 SHA-256、版本与实测清单。debug APK 只供本人测试，正式发布另做签名与发布配置。
 
-如没有 Android SDK / JDK，先建立受控目录再安装匹配版本。Windows 的下载、缓存、SDK、Gradle 和产物都放 D 盘；Linux 构建机放项目或 `/opt/morrow` 下。不要上传本机 `node_modules`，在目标平台执行 `npm ci`。
+如没有 Android SDK / JDK，先建立受控目录再安装匹配版本。Windows 的下载、缓存、SDK、Gradle 和产物都放 D 盘；Linux 构建机放项目或 `/opt/easy-speak` 下。不要上传本机 `node_modules`，在目标平台执行 `npm ci`。
 
 ## 3. 现有代码与配置
 
@@ -138,13 +138,13 @@ Linux 构建机使用相同 npm 检查，Gradle 命令改为 `./gradlew assemble
 ```bash
 sudo certbot certonly --staging \
   --preferred-profile shortlived \
-  --webroot --webroot-path /var/www/morrow-acme \
+  --webroot --webroot-path /var/www/easy-speak-acme \
   --ip-address "$MORROW_PUBLIC_IP" \
   --cert-name morrow-ip-staging \
   --email "$MORROW_ACME_EMAIL" --agree-tos --non-interactive
 ```
 
-先确认测试环境验证成功，再去掉 `--staging` 并使用独立名称 `morrow-ip` 申请受信任证书；Nginx 引用 `/etc/letsencrypt/live/morrow-ip/fullchain.pem` 与 `privkey.pem`。保留已验证的自动续期定时器，配置续期成功后先 `nginx -t` 再 reload，执行 `certbot renew --dry-run` 验证；监控证书到期。不要通过跳过手机证书校验来使用 staging 或自签名证书。[官方 Certbot IP 证书操作说明](https://letsencrypt.org/2026/03/11/shorter-certs-certbot)、[Certbot 参数文档](https://eff-certbot.readthedocs.io/en/stable/using.html)
+先确认测试环境验证成功，再去掉 `--staging` 并使用独立名称 `morrow-ip` 申请受信任证书；Nginx 引用 `/etc/letsencrypt/live/easy-speak-ip/fullchain.pem` 与 `privkey.pem`。保留已验证的自动续期定时器，配置续期成功后先 `nginx -t` 再 reload，执行 `certbot renew --dry-run` 验证；监控证书到期。不要通过跳过手机证书校验来使用 staging 或自签名证书。[官方 Certbot IP 证书操作说明](https://letsencrypt.org/2026/03/11/shorter-certs-certbot)、[Certbot 参数文档](https://eff-certbot.readthedocs.io/en/stable/using.html)
 
 公网阶段的上线条件：未授权 401 / 403、错误 Origin 拒绝、超限 413 / 429、慢请求被终止、上游断开可恢复、证书正常续期、日志脱敏、进程重启与回滚均已验收。全部通过后再开放 API；这不是对“绝不会被攻击”的承诺。
 

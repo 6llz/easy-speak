@@ -2,6 +2,12 @@
 
 最近验证日期：2026-10-20。Node.js 24.20.0，Windows，依赖和缓存位于 D 盘项目目录。以下保留各轮验证日期与当时范围。
 
+## 应用目录改为 easy-speak：2026-10-20
+
+- 应用目录已从旧名称改为 `easy-speak/`，启动、源码导出、README、部署指南及文档链接同步更新。`Start-EasySpeak.ps1` 直接启动新目录，旧名称的启动脚本已移除。浏览器存储键与本机请求标记保持兼容，不迁移或清空已有练习记录。
+- 新目录下完整 215 项测试、格式、Lint 和生产构建通过；83 个相对文档链接检查通过。PDF chunk 的原有体积警告保留。
+- 本地服务已从新目录启动，首页和 App 模块均返回 HTTP 200，MiniMax 状态仍为 `configured=false`。没有恢复真实 Key，没有新增下载或改变本机代理的访问范围。
+
 ## EasySpeak 英文名称与 GitHub 发布准备：2026-10-20
 
 - 中文名保持「轻松说」，英文名统一为 EasySpeak，npm / 仓库使用 `easy-speak`；启动与导出脚本为 `Start-EasySpeak.ps1` 和 `Export-EasySpeak.ps1`，公开文件不再使用拼音名称。

@@ -10,15 +10,15 @@ $sourceFiles = [Collections.Generic.List[IO.FileInfo]]::new()
 # 只允许明确的入口文件和源码目录，禁止把工作目录、环境文件或缓存整体归档。
 $requiredFiles = @(
     'README.md', 'LICENSE', 'NOTICE', 'SECURITY.md', 'THIRD_PARTY_NOTICES.md',
-    '.gitignore', '.gitattributes', 'Start-EasySpeak.ps1', 'Start-Morrow.ps1', 'Export-EasySpeak.ps1',
-    'morrow/README.md', 'morrow/LICENSE', 'morrow/NOTICE', 'morrow/CONTRIBUTING.md',
-    'morrow/DEPLOYMENT.md', 'morrow/.editorconfig', 'morrow/.env.example',
-    'morrow/.gitignore', 'morrow/.npmrc', 'morrow/.prettierignore',
-    'morrow/.prettierrc.json', 'morrow/eslint.config.js', 'morrow/index.html',
-    'morrow/package.json', 'morrow/package-lock.json', 'morrow/tsconfig.json',
-    'morrow/vite.config.ts'
+    '.gitignore', '.gitattributes', 'Start-EasySpeak.ps1', 'Export-EasySpeak.ps1',
+    'easy-speak/README.md', 'easy-speak/LICENSE', 'easy-speak/NOTICE', 'easy-speak/CONTRIBUTING.md',
+    'easy-speak/DEPLOYMENT.md', 'easy-speak/.editorconfig', 'easy-speak/.env.example',
+    'easy-speak/.gitignore', 'easy-speak/.npmrc', 'easy-speak/.prettierignore',
+    'easy-speak/.prettierrc.json', 'easy-speak/eslint.config.js', 'easy-speak/index.html',
+    'easy-speak/package.json', 'easy-speak/package-lock.json', 'easy-speak/tsconfig.json',
+    'easy-speak/vite.config.ts'
 )
-$sourceDirectories = @('morrow/src', 'morrow/server', 'morrow/public', 'morrow/tests', 'morrow/docs')
+$sourceDirectories = @('easy-speak/src', 'easy-speak/server', 'easy-speak/public', 'easy-speak/tests', 'easy-speak/docs')
 $allowedExtensions = @('.ts', '.tsx', '.css', '.svg', '.md')
 
 function Add-PublicSourceFile([IO.FileSystemInfo]$Entry) {
@@ -52,7 +52,7 @@ $knownSecrets = [Collections.Generic.List[string]]::new()
 if ($env:MINIMAX_API_KEY -and $env:MINIMAX_API_KEY.Length -ge 16) {
     $knownSecrets.Add($env:MINIMAX_API_KEY)
 }
-$localEnvironment = Join-Path $projectRoot 'morrow/.env.local'
+$localEnvironment = Join-Path $projectRoot 'easy-speak/.env.local'
 if (Test-Path -LiteralPath $localEnvironment -PathType Leaf) {
     foreach ($line in [IO.File]::ReadAllLines($localEnvironment)) {
         if ($line -match '^\s*MINIMAX_API_KEY\s*=\s*(.+?)\s*$') {

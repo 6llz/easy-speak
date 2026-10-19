@@ -33,7 +33,7 @@
 
 ## 接入步骤
 
-以下命令在 `D:\Project\EnglishTalk\morrow` 执行。Capacitor 组件保持同一大版本；本例使用当前文档对应的 8，实际安装后提交锁文件。
+以下命令在 `D:\Project\EnglishTalk\easy-speak` 执行。Capacitor 组件保持同一大版本；本例使用当前文档对应的 8，实际安装后提交锁文件。
 
 ```powershell
 npm install @capacitor/core@8 @capacitor/android@8 --cache .npm-cache
