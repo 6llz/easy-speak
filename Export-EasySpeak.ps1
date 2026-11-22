@@ -12,13 +12,13 @@ $requiredFiles = @(
     'README.md', 'README.en.md', 'README.ja.md', 'README.ko.md',
     'README.es.md', 'README.fr.md', 'README.de.md',
     'LICENSE', 'NOTICE', 'SECURITY.md', 'THIRD_PARTY_NOTICES.md',
-    '.gitignore', '.gitattributes', 'Start-EasySpeak.ps1', 'Export-EasySpeak.ps1',
+    '.gitignore', '.gitattributes', 'Start-EasySpeak.ps1', 'Export-EasySpeak.ps1', 'Build-EasySpeakAndroid.ps1',
     'easy-speak/README.md', 'easy-speak/LICENSE', 'easy-speak/NOTICE', 'easy-speak/CONTRIBUTING.md',
     'easy-speak/DEPLOYMENT.md', 'easy-speak/.editorconfig', 'easy-speak/.env.example',
     'easy-speak/.gitignore', 'easy-speak/.npmrc', 'easy-speak/.prettierignore',
     'easy-speak/.prettierrc.json', 'easy-speak/eslint.config.js', 'easy-speak/index.html',
     'easy-speak/package.json', 'easy-speak/package-lock.json', 'easy-speak/tsconfig.json',
-    'easy-speak/vite.config.ts'
+    'easy-speak/vite.config.ts', 'easy-speak/capacitor.config.json'
 )
 $sourceDirectories = @('easy-speak/src', 'easy-speak/server', 'easy-speak/public', 'easy-speak/tests', 'easy-speak/docs')
 $allowedExtensions = @('.ts', '.tsx', '.css', '.svg', '.md')

@@ -7,10 +7,12 @@ import './voices.css';
 import './training.css';
 import { loadInitialSettings } from './lib/speechSettings';
 
-void loadInitialSettings().then((initialSettings) =>
+const allowLocalMiniMax = import.meta.env.MODE !== 'android';
+
+void loadInitialSettings(allowLocalMiniMax).then((initialSettings) =>
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-      <App initialSettings={initialSettings} />
+      <App initialSettings={initialSettings} allowLocalMiniMax={allowLocalMiniMax} />
     </React.StrictMode>,
   ),
 );

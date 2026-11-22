@@ -4,6 +4,10 @@
   font-weight: 400;
   color: var(--text);
   background: var(--page);
+  --app-safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --app-safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --app-safe-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+  --app-safe-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
   --line: color-mix(in srgb, var(--text) 11%, transparent);
   --backdrop: color-mix(in srgb, var(--page) 65%, transparent);
   --toggle-track: color-mix(in srgb, var(--muted) 28%, var(--surface));
@@ -206,11 +210,14 @@ strong {
 }
 .app-canvas {
   width: min(100%, 650px);
-  min-height: 100dvh;
+  height: 100dvh;
+  min-height: 0;
   margin: 0 auto;
-  padding: 22px 30px max(16px, env(safe-area-inset-bottom));
+  padding: calc(12px + var(--app-safe-top)) max(30px, var(--app-safe-right))
+    calc(12px + var(--app-safe-bottom)) max(30px, var(--app-safe-left));
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   position: relative;
   z-index: 1;
 }
@@ -222,6 +229,7 @@ strong {
   flex-shrink: 0;
 }
 .language-pair-button {
+  flex-shrink: 0;
   align-self: center;
   display: flex;
   align-items: center;
@@ -313,13 +321,16 @@ strong {
   border-color: color-mix(in srgb, var(--text) 8.2%, transparent);
 }
 .speaker-section {
-  flex-shrink: 0;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 28px;
+  margin-top: 6px;
 }
 .speaker-orb {
+  flex-shrink: 0;
   position: relative;
   width: 62px;
   height: 62px;
@@ -384,6 +395,7 @@ strong {
   animation: spin 7s linear infinite;
 }
 .speaker-name {
+  flex-shrink: 0;
   font-family: 'DM Sans', sans-serif;
   display: flex;
   align-items: center;
@@ -412,9 +424,9 @@ strong {
 }
 .live-caption {
   width: 100%;
-  margin-top: 22px;
-  min-height: 135px;
-  max-height: 210px;
+  flex: 1;
+  min-height: 0;
+  margin-top: 14px;
   overflow: auto;
   padding: 0 5px 12px;
 }
@@ -487,10 +499,9 @@ strong {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  flex: 1;
-  justify-content: center;
+  flex: 1.35 1 0;
   min-height: 0;
-  margin: 4px 0 10px;
+  margin: 10px 0 0;
 }
 .coach-box {
   border: 1px solid color-mix(in srgb, var(--accent) 10.6%, transparent);
@@ -506,13 +517,12 @@ strong {
   );
   backdrop-filter: blur(15px);
   min-height: 0;
-  flex-shrink: 0;
+  flex: 1 1 0;
 }
 .coach-box.inspiration {
-  height: 186px;
+  flex-grow: 1.15;
 }
 .coach-box.feedback {
-  height: 150px;
   border-color: color-mix(in srgb, var(--mint) 8.2%, transparent);
   background: linear-gradient(
     130deg,
@@ -567,6 +577,7 @@ strong {
   color: var(--mint);
 }
 .coach-content {
+  min-height: 0;
   padding: 10px 18px 15px;
   overflow-y: auto;
   flex: 1;
@@ -744,7 +755,7 @@ strong {
   margin-top: 4px;
 }
 .voice-dock {
-  margin-top: 22px;
+  margin-top: 12px;
   flex-shrink: 0;
 }
 .turn-status {
@@ -755,9 +766,11 @@ strong {
   font-size: 11px;
   color: var(--text-secondary);
   letter-spacing: 0.5px;
-  margin-bottom: 21px;
+  margin-bottom: 8px;
+  text-align: center;
 }
 .voice-bars {
+  flex-shrink: 0;
   height: 16px;
   display: flex;
   align-items: center;
@@ -819,39 +832,7 @@ strong {
   color: var(--text);
   border-color: color-mix(in srgb, var(--text) 9.8%, transparent);
 }
-.app-bottom-label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  margin-top: 25px;
-  color: var(--muted);
-  font-size: 9px;
-  flex-shrink: 0;
-}
-.app-bottom-label > span {
-  font-family: 'Manrope', sans-serif;
-  font-size: 13px;
-  letter-spacing: -0.6px;
-  font-weight: 650;
-  color: var(--muted);
-}
 .brand-dot {
-  color: var(--text-secondary);
-}
-.app-bottom-label > i {
-  height: 8px;
-  width: 1px;
-  background: color-mix(in srgb, var(--accent) 18.8%, transparent);
-}
-.app-bottom-label > button {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 8px;
-  color: var(--muted);
-}
-.app-bottom-label > button:hover {
   color: var(--text-secondary);
 }
 .text-composer {
@@ -1983,15 +1964,14 @@ strong {
 
 @media (min-width: 900px) {
   .app-canvas {
-    padding-top: 30px;
-    padding-bottom: 22px;
-    min-height: 100dvh;
+    padding-top: calc(30px + var(--app-safe-top));
+    padding-bottom: calc(22px + var(--app-safe-bottom));
   }
   .voice-header {
     height: 61px;
   }
   .speaker-section {
-    margin-top: 30px;
+    margin-top: 6px;
   }
   .speaker-orb {
     width: 68px;
@@ -2001,9 +1981,7 @@ strong {
     margin-top: 19px;
   }
   .live-caption {
-    margin-top: 25px;
-    min-height: 142px;
-    max-height: 205px;
+    margin-top: 12px;
   }
   .assistant-caption > p {
     font-size: 22px;
@@ -2012,14 +1990,7 @@ strong {
   .coach-stack {
     gap: 14px;
     margin-top: 5px;
-    flex: 1;
-    justify-content: center;
-  }
-  .coach-box.inspiration {
-    height: 192px;
-  }
-  .coach-box.feedback {
-    height: 160px;
+    flex: 1.35 1 0;
   }
   .coach-box > header {
     padding: 16px 20px 0;
@@ -2055,7 +2026,7 @@ strong {
     font-size: 11px;
   }
   .voice-dock {
-    margin-top: 28px;
+    margin-top: 12px;
   }
   .voice-controls {
     gap: 59px;
@@ -2064,49 +2035,27 @@ strong {
     height: 52px;
     width: 52px;
   }
-  .app-bottom-label {
-    margin-top: 26px;
-  }
 }
 @media (min-height: 950px) and (min-width: 700px) {
-  .app-canvas {
-    max-height: 1100px;
-    min-height: 950px;
-    height: 100dvh;
-  }
   .speaker-section {
-    margin-top: 42px;
+    margin-top: 6px;
   }
   .speaker-orb {
     height: 76px;
     width: 76px;
   }
   .live-caption {
-    margin-top: 30px;
-    min-height: 156px;
-  }
-  .coach-stack {
-    max-height: 450px;
-  }
-  .coach-box.inspiration {
-    height: 210px;
-  }
-  .coach-box.feedback {
-    height: 172px;
+    margin-top: 12px;
   }
   .voice-dock {
-    margin-top: auto;
-    padding-top: 30px;
-  }
-  .app-bottom-label {
-    margin-top: 29px;
+    margin-top: 12px;
   }
 }
 @media (max-width: 630px) {
   .app-canvas {
-    padding: 12px 24px max(15px, env(safe-area-inset-bottom));
+    padding: calc(8px + var(--app-safe-top)) max(24px, var(--app-safe-right))
+      calc(12px + var(--app-safe-bottom)) max(24px, var(--app-safe-left));
     width: 100%;
-    min-height: 100dvh;
   }
   .voice-header {
     height: 55px;
@@ -2122,7 +2071,7 @@ strong {
     gap: 7px;
   }
   .speaker-section {
-    margin-top: 19px;
+    margin-top: 6px;
   }
   .speaker-orb {
     height: 52px;
@@ -2140,9 +2089,7 @@ strong {
     font-size: 9px;
   }
   .live-caption {
-    margin-top: 21px;
-    min-height: 133px;
-    max-height: 192px;
+    margin-top: 12px;
     padding: 0 1px 12px;
   }
   .assistant-caption > p {
@@ -2172,17 +2119,10 @@ strong {
     font-size: 11px;
   }
   .coach-stack {
-    flex: 1;
-    justify-content: center;
+    flex: 1.35 1 0;
     gap: 11px;
     margin-top: 1px;
     margin-bottom: 0;
-  }
-  .coach-box.inspiration {
-    height: 184px;
-  }
-  .coach-box.feedback {
-    height: 144px;
   }
   .coach-box > header {
     padding: 13px 14px 0;
@@ -2271,11 +2211,11 @@ strong {
     gap: 4px;
   }
   .voice-dock {
-    margin-top: 24px;
+    margin-top: 12px;
   }
   .turn-status {
     font-size: 10px;
-    margin-bottom: 19px;
+    margin-bottom: 8px;
     gap: 8px;
   }
   .voice-controls {
@@ -2295,16 +2235,6 @@ strong {
   }
   .voice-controls > div > span {
     font-size: 9px;
-  }
-  .app-bottom-label {
-    margin-top: 24px;
-    font-size: 8px;
-  }
-  .app-bottom-label > span {
-    font-size: 12px;
-  }
-  .app-bottom-label > button {
-    font-size: 7px;
   }
   .text-composer {
     padding: 10px 10px 10px 12px;
@@ -2569,10 +2499,10 @@ strong {
 }
 @media (max-height: 760px) {
   .app-canvas {
-    padding-top: 7px;
+    padding-top: calc(7px + var(--app-safe-top));
   }
   .speaker-section {
-    margin-top: 9px;
+    margin-top: 6px;
   }
   .speaker-orb {
     width: 42px;
@@ -2585,19 +2515,11 @@ strong {
     margin-top: 11px;
   }
   .live-caption {
-    min-height: 108px;
-    max-height: 150px;
-    margin-top: 16px;
+    margin-top: 12px;
   }
   .assistant-caption > p {
     font-size: 17px;
     line-height: 1.55;
-  }
-  .coach-box.inspiration {
-    height: 167px;
-  }
-  .coach-box.feedback {
-    height: 128px;
   }
   .coach-box > header {
     padding-top: 11px;
@@ -2607,10 +2529,10 @@ strong {
     padding-bottom: 11px;
   }
   .voice-dock {
-    margin-top: 19px;
+    margin-top: 12px;
   }
   .turn-status {
-    margin-bottom: 14px;
+    margin-bottom: 8px;
   }
   .round-control {
     height: 43px;
@@ -2618,9 +2540,6 @@ strong {
   }
   .voice-controls > div {
     gap: 8px;
-  }
-  .app-bottom-label {
-    margin-top: 18px;
   }
   .voice-header {
     height: 49px;
@@ -2637,25 +2556,14 @@ strong {
     margin-top: 9px;
   }
   .live-caption {
-    min-height: 92px;
-    max-height: 132px;
     margin-top: 14px;
-  }
-  .coach-box.inspiration {
-    height: 151px;
-  }
-  .coach-box.feedback {
-    height: 115px;
   }
   .voice-dock {
-    margin-top: 16px;
-  }
-  .app-bottom-label {
-    margin-top: 14px;
+    margin-top: 12px;
   }
   .turn-status {
     font-size: 9px;
-    margin-bottom: 13px;
+    margin-bottom: 8px;
   }
   .coach-content {
     padding-bottom: 9px;
@@ -2687,13 +2595,10 @@ strong {
   font-size: 8px;
   color: var(--muted);
   padding: 0;
-  margin: 15px auto 0;
+  margin: 8px auto 0;
 }
 .quiet-audio-toggle:hover {
   color: var(--text-secondary);
-}
-.app-bottom-label {
-  margin-top: 18px;
 }
 .skip-speech {
   font-size: 9px;
@@ -2764,10 +2669,7 @@ strong {
   }
   .quiet-audio-toggle {
     font-size: 7px;
-    margin-top: 14px;
-  }
-  .app-bottom-label {
-    margin-top: 17px;
+    margin-top: 6px;
   }
   .camera-preview {
     width: 69px;
@@ -2787,10 +2689,7 @@ strong {
     width: 44px;
   }
   .quiet-audio-toggle {
-    margin-top: 11px;
-  }
-  .app-bottom-label {
-    margin-top: 14px;
+    margin-top: 6px;
   }
   .camera-preview {
     top: 65px;
@@ -2798,14 +2697,14 @@ strong {
 }
 @media (min-width: 631px) and (max-height: 950px) {
   .app-canvas {
-    padding-top: 12px;
-    padding-bottom: 14px;
+    padding-top: calc(12px + var(--app-safe-top));
+    padding-bottom: calc(14px + var(--app-safe-bottom));
   }
   .voice-header {
     height: 52px;
   }
   .speaker-section {
-    margin-top: 16px;
+    margin-top: 6px;
   }
   .speaker-orb {
     width: 54px;
@@ -2815,46 +2714,86 @@ strong {
     margin-top: 12px;
   }
   .live-caption {
-    margin-top: 19px;
-    min-height: 120px;
-    max-height: 160px;
+    margin-top: 12px;
   }
   .coach-stack {
     gap: 12px;
   }
-  .coach-box.inspiration {
-    height: 174px;
-  }
-  .coach-box.feedback {
-    height: 140px;
-  }
   .voice-dock {
-    margin-top: 20px;
+    margin-top: 12px;
   }
   .session-controls .round-control {
     width: 50px;
     height: 50px;
   }
   .quiet-audio-toggle {
-    margin-top: 12px;
-  }
-  .app-bottom-label {
-    margin-top: 14px;
+    margin-top: 6px;
   }
 }
 @media (max-width: 630px) and (min-height: 761px) {
   .speaker-section {
-    margin-top: 15px;
+    margin-top: 6px;
   }
   .live-caption {
-    min-height: 124px;
-    margin-top: 20px;
+    margin-top: 12px;
   }
   .voice-dock {
-    margin-top: 20px;
+    margin-top: 12px;
   }
-  .app-bottom-label {
-    margin-top: 14px;
+}
+/* 键盘弹出或横屏时压缩装饰和留白，操作区始终留在当前视口内。 */
+@media (max-height: 520px) {
+  .voice-header {
+    height: 44px;
+  }
+  .language-pair-button {
+    min-height: 26px;
+  }
+  .speaker-name {
+    margin-top: 0;
+  }
+  .live-caption {
+    margin-top: 6px;
+    padding-bottom: 4px;
+  }
+  .coach-stack {
+    flex-direction: row;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .coach-box > header {
+    padding: 8px 8px 0;
+  }
+  .coach-box h2 {
+    font-size: 10px;
+    letter-spacing: 0;
+  }
+  .coach-update {
+    display: none;
+  }
+  .coach-content {
+    padding: 6px 8px 8px;
+  }
+  .voice-dock {
+    margin-top: 6px;
+  }
+  .text-composer {
+    padding: 6px 8px;
+    margin-bottom: 6px;
+  }
+  .text-composer textarea {
+    height: 38px;
+    line-height: 1.45;
+  }
+  .turn-status {
+    font-size: 9px;
+    margin-bottom: 4px;
+  }
+  .voice-controls > div {
+    gap: 4px;
+  }
+  .quiet-audio-toggle {
+    margin-top: 4px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

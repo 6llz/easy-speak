@@ -40,6 +40,7 @@ const SETTINGS_TABS: SettingsTab[] = ['voices', 'models', 'voice', 'theme'];
 
 type SettingsDialogProps = {
   settings: Settings;
+  allowLocalMiniMax?: boolean;
   selectedTheme: ThemeId;
   initialTab?: SettingsTab;
   onThemeChange: (themeId: ThemeId) => void;
@@ -50,6 +51,7 @@ type SettingsDialogProps = {
 
 export function SettingsDialog({
   settings,
+  allowLocalMiniMax = true,
   selectedTheme,
   initialTab = 'models',
   onThemeChange,
@@ -70,7 +72,8 @@ export function SettingsDialog({
   const controller = useRef<AbortController | null>(null);
   useEffect(() => () => controller.current?.abort(), []);
   useEffect(() => {
-    if (!['127.0.0.1', 'localhost', '[::1]'].includes(location.hostname)) return;
+    if (!allowLocalMiniMax || !['127.0.0.1', 'localhost', '[::1]'].includes(location.hostname))
+      return;
     const statusController = new AbortController();
     void fetch(`${LOCAL_MINIMAX_PATH}/status`, {
       signal: AbortSignal.any([statusController.signal, AbortSignal.timeout(1500)]),
@@ -82,7 +85,7 @@ export function SettingsDialog({
         /* 静态部署没有本机服务，不显示本机密钥入口。 */
       });
     return () => statusController.abort();
-  }, []);
+  }, [allowLocalMiniMax]);
   const update = <K extends keyof Settings>(key: K, value: Settings[K]) => {
     controller.current?.abort();
     setDraft((s) => ({ ...s, [key]: value }));
@@ -339,7 +342,10 @@ export function SettingsDialog({
             ) : (
               <>
                 <label className="field-label" htmlFor="api-key">
-                  API Key <span>仅保留在当前标签页会话</span>
+                  API Key{' '}
+                  <span>
+                    {allowLocalMiniMax ? '仅保留在当前标签页会话' : '仅保留在当前 App 会话'}
+                  </span>
                 </label>
                 <div className="password-field">
                   <input
@@ -475,7 +481,7 @@ export function SettingsDialog({
                     <label className="field-label" htmlFor="speech-key">
                       语音 API Key{' '}
                       <span>
-                        {draft.provider === 'minimax' ? '留空复用对话密钥' : '仅保留在当前标签页'}
+                        {draft.provider === 'minimax' ? '留空复用对话密钥' : '仅保留在当前会话'}
                       </span>
                     </label>
                     <input

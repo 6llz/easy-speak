@@ -80,8 +80,19 @@ export function withLocalMiniMax(settings: Settings, origin: string): Settings {
 }
 
 /** 首次本地运行读取服务状态；真实密钥始终留在服务端，不进入页面或构建产物。 */
-export async function loadInitialSettings(): Promise<Settings> {
+export async function loadInitialSettings(allowLocalMiniMax = true): Promise<Settings> {
   const settings = readSettings();
+  if (!allowLocalMiniMax)
+    return settings.useLocalMiniMax
+      ? {
+          ...settings,
+          baseUrl: PROVIDERS.minimax.baseUrl,
+          apiKey: '',
+          speechProvider: 'browser',
+          recognitionProvider: 'browser',
+          useLocalMiniMax: false,
+        }
+      : settings;
   if (!['127.0.0.1', 'localhost', '[::1]'].includes(location.hostname)) return settings;
   const stored = readLocal<Record<string, unknown> | null>('settings', null);
   const shouldConnect =

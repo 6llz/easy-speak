@@ -22,10 +22,11 @@ import { APP_NAME } from '../lib/brand';
 
 type HistoryPageProps = {
   sessions: Session[];
+  currentSessionId?: string;
   onDelete: (id: string) => void;
   onStart: () => void;
 };
-export function HistoryPage({ sessions, onDelete, onStart }: HistoryPageProps) {
+export function HistoryPage({ sessions, currentSessionId, onDelete, onStart }: HistoryPageProps) {
   const [selected, setSelected] = useState<Session | null>(null);
   const [search, setSearch] = useState('');
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
@@ -172,7 +173,11 @@ export function HistoryPage({ sessions, onDelete, onStart }: HistoryPageProps) {
       {pendingDelete && (
         <Modal
           title="删除这次练习？"
-          description="删除后无法恢复。你也可以先导出对话。"
+          description={
+            pendingDelete === currentSessionId
+              ? '删除后无法恢复。这段对话将停止自动保存，开始新对话后会恢复保存。'
+              : '删除后无法恢复。你也可以先导出对话。'
+          }
           onClose={() => setPendingDelete(null)}
         >
           <div className="modal-actions">

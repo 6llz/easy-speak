@@ -36,6 +36,7 @@ type PracticeScreenProps = {
   onToggleAudio: () => void;
   onSavePhrase: (en: string, zh: string) => void;
   onOpenTranscript: () => void;
+  onEndSession: () => void;
   notify: (message: string) => void;
   isOverlayOpen: boolean;
   isScreenActive?: boolean;
@@ -51,6 +52,7 @@ export function PracticeScreen({
   onToggleAudio,
   onSavePhrase,
   onOpenTranscript,
+  onEndSession,
   notify,
   isOverlayOpen,
   isScreenActive = true,
@@ -122,7 +124,7 @@ export function PracticeScreen({
         <div className="speaker-name">
           {speakerName} <span>你的{languageName(practiceLanguage)}语伴</span>
           <i />
-          {practice.phase === 'listening' ? '在听' : '在这里'}
+          {isDemo ? '示范体验' : practice.phase === 'listening' ? '在听' : '在这里'}
         </div>
         <div className="live-caption">
           {lastUser && (
@@ -544,20 +546,20 @@ export function PracticeScreen({
           </span>
           {media.sessionState === 'ended'
             ? '这次先聊到这里，想聊时点继续'
-            : media.sessionState === 'paused'
-              ? '已暂停，准备好再继续'
-              : practice.draft.trim() && isReady && !isTextMode
-                ? '这句还没发送，确认或放弃后继续'
-                : practice.rehearsal
-                  ? practice.phase === 'thinking'
-                    ? '正在看这次尝试…'
-                    : practice.rehearsal.result
-                      ? '这一遍练完了，可以再试或返回聊天'
-                      : '试着说一遍，也可以打字'
-                  : isTextMode
-                    ? '写下你想说的，我们接着聊'
-                    : practice.isTranscribing
-                      ? '正在把你刚才的话记下来…'
+            : media.isPausedForRecognition
+              ? '语音识别已暂停。可以打字聊，或点继续重试。'
+              : media.sessionState === 'paused'
+                ? '已暂停，准备好再继续'
+                : practice.draft.trim() && isReady && !isTextMode
+                  ? '这句还没发送，确认或放弃后继续'
+                  : practice.rehearsal
+                    ? practice.phase === 'thinking'
+                      ? '正在看这次尝试…'
+                      : practice.rehearsal.result
+                        ? '这一遍练完了，可以再试或返回聊天'
+                        : '试着说一遍，也可以打字'
+                    : isTextMode && isReady
+                      ? '写下你想说的，我们接着聊'
                       : phaseLabels[practice.phase]}
           {isSpeaking && (
             <button className="skip-speech" onClick={practice.stopSpeaking}>
@@ -612,11 +614,14 @@ export function PracticeScreen({
           <div>
             <button
               className="round-control hangup-control"
-              aria-label="挂断并结束陪练"
+              aria-label="挂断并结束陪练，返回主界面"
               disabled={
                 media.sessionState === 'ended' && !media.isCameraOn && !media.isCameraLoading
               }
-              onClick={media.endSession}
+              onClick={() => {
+                media.endSession();
+                onEndSession();
+              }}
             >
               <PhoneOff size={22} />
             </button>

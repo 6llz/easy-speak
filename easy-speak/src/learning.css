@@ -5,7 +5,7 @@
   width: min(100%, 680px);
   margin: 0 auto;
   min-height: 100dvh;
-  padding: max(24px, env(safe-area-inset-top)) 26px calc(110px + env(safe-area-inset-bottom));
+  padding: max(24px, var(--app-safe-top)) 26px calc(110px + var(--app-safe-bottom));
 }
 .learning-header,
 .learning-row,
@@ -313,7 +313,7 @@
   left: 50%;
   transform: translateX(-50%);
   width: min(100%, 680px);
-  padding: 13px 12px max(13px, env(safe-area-inset-bottom));
+  padding: 13px 12px max(13px, var(--app-safe-bottom));
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   border-top: 1px solid var(--line);
@@ -559,6 +559,7 @@
   line-height: 1.8;
 }
 .lesson-session-banner {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 7px;

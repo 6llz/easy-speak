@@ -13,6 +13,7 @@ import { applyVoiceChoice } from '../src/lib/voicePresets.ts';
 import type { VoiceChoice } from '../src/lib/voicePresets.ts';
 import { createLessonScene, LESSONS } from '../src/lib/lessons.ts';
 import { createTrainingDraft, createTrainingScene } from '../src/lib/customTraining.ts';
+import { readSessions } from '../src/lib/storage.ts';
 
 class MemoryStorage {
   private values = new Map<string, string>();
@@ -90,7 +91,7 @@ async function mountSession(
   context: TestContext,
   options: Partial<HarnessProps> & { strictMode?: boolean } = {},
 ) {
-  context.mock.timers.enable({ apis: ['setTimeout', 'setInterval'] });
+  context.mock.timers.enable({ apis: ['setTimeout', 'setInterval', 'Date'] });
   const document = Object.assign(new EventTarget(), { visibilityState: 'visible' });
   const recognitions: FakeRecognition[] = [];
   const utterances: FakeUtterance[] = [];
@@ -592,6 +593,42 @@ test('权限拒绝后保持暂停，用户点击继续在同次手势中重新�
   assert.equal(session.state.practice.phase, 'listening');
 });
 
+test('麦克风失败后切换打字可直接发送，切回语音保留当前回复并等待主动重试', async (context) => {
+  const session = await mountSession(context, { settings: CONNECTED_SETTINGS });
+  await session.advance(400);
+  await act(async () => {
+    session.recognitions[0].onerror?.({ error: 'not-allowed' });
+    session.recognitions[0].finish();
+  });
+  assert.equal(session.state.media.sessionState, 'paused');
+  await session.update({ isTextMode: true });
+  assert.equal(session.state.media.sessionState, 'active');
+  await act(async () => session.state.practice.submit('We can continue in text.'));
+  const main = session.requests.find((request) => request.body.model === 'main')!;
+
+  await session.update({ isTextMode: false });
+  assert.equal(main.signal.aborted, false);
+  await session.complete(main, 'Of course. What would you like to discuss?');
+  assert.equal(session.state.media.sessionState, 'paused');
+  await session.advance(1000);
+  assert.equal(session.recognitions.length, 1);
+  await act(async () => session.state.media.resumeSession());
+  assert.equal(session.recognitions.length, 2);
+});
+
+test('切换打字不会撤销手动暂停或挂断', async (context) => {
+  const session = await mountSession(context);
+  await act(async () => session.state.media.pauseSession());
+  await session.update({ isTextMode: true });
+  assert.equal(session.state.media.sessionState, 'paused');
+  await session.update({ isTextMode: false });
+  await act(async () => session.state.media.endSession());
+  await session.update({ isTextMode: true });
+  assert.equal(session.state.media.sessionState, 'ended');
+  await session.advance(1000);
+  assert.equal(session.recognitions.length, 0);
+});
+
 test('暂停中的请求恢复原用户轮次，取消的旧回复晚到也不会覆盖新回复', async (context) => {
   const session = await mountSession(context, { settings: CONNECTED_SETTINGS, isTextMode: true });
   await act(async () => session.state.practice.submit('I went for a walk.'));
@@ -832,10 +869,116 @@ test('StrictMode 下单次保存只写入一次，存储失败只提示一次', 
   await act(async () => session.state.practice.saveSession());
   assert.equal(write.mock.callCount(), 1);
   assert.equal(
-    session.notifications.filter((message) => message.includes('存储空间不足')).length,
+    session.notifications.filter((message) => message.includes('未能保存练习记录')).length,
     1,
   );
   assert.equal(session.state.practice.sessions.length, 1);
+});
+
+test('主回复在朗读结束前已保存，翻译会更新历史，重听不会重复写入或改变练习日期', async (context) => {
+  const session = await mountSession(context, {
+    settings: { ...CONNECTED_SETTINGS, autoSpeak: true },
+    isTextMode: true,
+  });
+  const write = context.mock.method(localStorage, 'setItem');
+  const activityDate = '2026-11-18T08:00:00.000Z';
+  context.mock.timers.setTime(Date.parse(activityDate));
+  await act(async () => session.state.practice.submit('I enjoy walking.'));
+  await session.advance(1000);
+  await session.complete(
+    session.requests.find((request) => request.body.model === 'main')!,
+    'Where do you walk?',
+  );
+  assert.equal(session.utterances.at(-1)?.isFinished, false);
+  assert.equal(readSessions()[0]?.messages.at(-1)?.content, 'Where do you walk?');
+  assert.equal(readSessions()[0].date, activityDate);
+  assert.equal(readSessions()[0].duration, 1);
+  assert.equal(write.mock.callCount(), 1);
+
+  await session.finishSpeech();
+  context.mock.timers.setTime(Date.parse('2026-11-19T08:00:00.000Z'));
+  await act(async () => session.state.practice.replay('Where do you walk?'));
+  await session.finishSpeech();
+  assert.equal(write.mock.callCount(), 1);
+
+  const messageId = session.state.practice.messages.at(-1)!.id;
+  await act(async () => {
+    void session.state.practice.translateMessage(messageId);
+  });
+  await session.complete(session.requests.at(-1)!, '你去哪儿散步？');
+  assert.equal(write.mock.callCount(), 2);
+  assert.equal(readSessions()[0].date, activityDate);
+  assert.equal(readSessions()[0].messages.at(-1)?.translation, '你去哪儿散步？');
+
+  await act(async () => session.state.practice.submit('Near my home.'));
+  await session.complete(
+    session.requests.findLast((request) => request.body.model === 'main')!,
+    'Sounds lovely.',
+  );
+  assert.equal(readSessions().length, 1);
+  assert.equal(readSessions()[0].date, '2026-11-19T08:00:00.000Z');
+});
+
+test('移动端切后台保存已发送的发言，排除未完成的流式回复和输入草稿', async (context) => {
+  const session = await mountSession(context, { settings: CONNECTED_SETTINGS, isTextMode: true });
+  const write = context.mock.method(localStorage, 'setItem');
+  await act(async () => session.state.practice.submit('Keep this submitted sentence.'));
+  const main = session.requests.find((request) => request.body.model === 'main')!;
+  await act(async () => {
+    const stream = new ReadableStream({
+      start(controller) {
+        const chunk = { choices: [{ delta: { content: 'Incomplete assistant reply' } }] };
+        controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(chunk)}\n\n`));
+      },
+    });
+    main.resolve(new Response(stream, { headers: { 'content-type': 'text/event-stream' } }));
+    session.state.practice.setDraft('Keep this draft out of history.');
+  });
+  assert.equal(session.state.practice.messages.at(-1)?.content, 'Incomplete assistant reply');
+  await act(async () => {
+    session.document.visibilityState = 'hidden';
+    session.document.dispatchEvent(new Event('visibilitychange'));
+  });
+  assert.equal(main.signal.aborted, true);
+  assert.equal(readSessions()[0]?.messages.at(-1)?.content, 'Keep this submitted sentence.');
+  const saved = localStorage.getItem('morrow:sessions')!;
+  assert.doesNotMatch(saved, /Incomplete assistant reply|Keep this draft out of history/);
+  await act(async () => session.window.dispatchEvent(new Event('pagehide')));
+  assert.equal(write.mock.callCount(), 1);
+});
+
+test('删除仍打开的练习记录后，继续聊天、挂断及新建会话都不会恢复旧记录', async (context) => {
+  const session = await mountSession(context, { isTextMode: true });
+  await act(async () => session.state.practice.submit('I like running.'));
+  await session.advance(600);
+  const deletedId = readSessions()[0].id;
+  await act(async () => session.state.practice.deleteSession(deletedId));
+  assert.deepEqual(readSessions(), []);
+
+  await act(async () => session.state.practice.submit('I run every morning.'));
+  await session.advance(600);
+  await act(async () => session.state.media.endSession());
+  assert.deepEqual(readSessions(), []);
+
+  await act(async () => session.state.media.resumeSession());
+  await act(async () => session.state.practice.submit('This is a new conversation.'));
+  await session.advance(600);
+  assert.equal(readSessions().length, 1);
+  assert.notEqual(readSessions()[0].id, deletedId);
+});
+
+test('挂断保存失败时提示存储错误，稍后的保存可以重试', async (context) => {
+  const session = await mountSession(context, { settings: CONNECTED_SETTINGS, isTextMode: true });
+  await act(async () => session.state.practice.submit('Save this even without a reply.'));
+  const write = context.mock.method(localStorage, 'setItem', () => {
+    throw new Error('quota');
+  });
+  await act(async () => session.state.media.endSession());
+  assert.match(session.notifications.at(-1) ?? '', /未能保存练习记录/);
+  assert.deepEqual(readSessions(), []);
+  write.mock.restore();
+  await act(async () => session.window.dispatchEvent(new Event('pagehide')));
+  assert.equal(readSessions()[0]?.messages.at(-1)?.content, 'Save this even without a reply.');
 });
 
 test('主回复完成后的示范与暂停保留独立辅导请求，两区仍能各自更新', async (context) => {

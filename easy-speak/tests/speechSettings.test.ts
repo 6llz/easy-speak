@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import { afterEach, test } from 'node:test';
-import { DEFAULT_SETTINGS, requestChatCompletion, validateSettings } from '../src/lib/core.ts';
+import {
+  DEFAULT_SETTINGS,
+  PROVIDERS,
+  requestChatCompletion,
+  validateSettings,
+} from '../src/lib/core.ts';
 import {
   getSpeechConfig,
   loadInitialSettings,
@@ -54,6 +59,30 @@ test('本机配置启动只取得占位值，保留用户主动选择的其他�
   assert.equal(settings.recognitionProvider, 'minimax');
   saveSettings({ ...DEFAULT_SETTINGS, provider: 'qwen' });
   assert.equal((await loadInitialSettings()).provider, 'qwen');
+});
+test('Android 跳过本机代理并保留会话内手填的直连密钥', async () => {
+  setup();
+  Object.defineProperty(globalThis, 'location', {
+    configurable: true,
+    value: { hostname: 'localhost', origin: 'https://localhost' },
+  });
+  let statusRequests = 0;
+  globalThis.fetch = async () => {
+    statusRequests++;
+    return Response.json({ configured: true });
+  };
+  assert.equal((await loadInitialSettings(false)).apiKey, '');
+
+  saveSettings(withLocalMiniMax(DEFAULT_SETTINGS, 'https://localhost'));
+  const recovered = await loadInitialSettings(false);
+  assert.equal(recovered.useLocalMiniMax, false);
+  assert.equal(recovered.baseUrl, PROVIDERS.minimax.baseUrl);
+  assert.equal(recovered.apiKey, '');
+
+  const direct = { ...recovered, apiKey: 'chat-test-key', speechApiKey: 'speech-test-key' };
+  saveSettings(direct);
+  assert.deepEqual(await loadInitialSettings(false), direct);
+  assert.equal(statusRequests, 0);
 });
 test('独立语音密钥只写会话存储，旧设置回退默认，清空后不残留', () => {
   const { local, session } = setup();

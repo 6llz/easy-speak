@@ -103,14 +103,13 @@ export function usePractice(
     setDraftState(value);
   };
   const [elapsed, setElapsed] = useState(0);
+  const elapsedRef = useRef(elapsed);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [sessions, setSessionsState] = useState<Session[]>(readSessions);
   const sessionsRef = useRef(sessions);
-  sessionsRef.current = sessions;
-  const setSessions = (next: Session[] | ((previous: Session[]) => Session[])) => {
-    const updated = typeof next === 'function' ? next(sessionsRef.current) : next;
-    sessionsRef.current = updated;
-    setSessionsState(updated);
+  const setSessions = (next: Session[]) => {
+    sessionsRef.current = next;
+    setSessionsState(next);
   };
   // 整轮失效与任务内替换分别计数：重试一个教练不能作废另一个教练。
   const epoch = useRef(0);
@@ -126,8 +125,11 @@ export function usePractice(
   const recognition = useRef<Recognition | null>(null);
   const submitRef = useRef<(text: string) => void>(() => {});
   const sessionId = useRef(id());
+  const lastSubmittedAt = useRef<string | null>(null);
+  const lastSavedSnapshot = useRef<{ messages: Message[]; duration: number } | null>(null);
+  const isCurrentSessionDeleted = useRef(false);
+  // 流式片段只用于界面和朗读，完整回复才能进入可保存的会话内容。
   const currentMessages = useRef(messages);
-  currentMessages.current = messages;
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
   const settingsRef = useRef(settings);
@@ -181,7 +183,7 @@ export function usePractice(
   useEffect(() => {
     if (!isTimerRunning) return;
     const timer = setInterval(() => {
-      if (document.visibilityState === 'visible') setElapsed((t) => t + 1);
+      if (document.visibilityState === 'visible') setElapsed(++elapsedRef.current);
     }, 1000);
     return () => clearInterval(timer);
   }, [isTimerRunning]);
@@ -400,6 +402,7 @@ export function usePractice(
         phaseRef.current = 'ready';
         setPhase('ready');
       }
+      saveSession();
       if (s.apiKey.trim()) void updateHint(complete, version);
       else setHint(demoHint(response));
     } catch (e) {
@@ -463,6 +466,7 @@ export function usePractice(
     setMessages(history);
     setDraft('');
     turnStart.current = Date.now();
+    lastSubmittedAt.current = new Date(turnStart.current).toISOString();
     if (settingsRef.current.apiKey.trim()) void updateReview(history, version);
     else setReview(demoReview(text));
     void generate(history, version);
@@ -632,20 +636,27 @@ export function usePractice(
     setIsTimerRunning(false);
   };
   /**
-   * 保存当前会话快照，同一 ID 替换旧快照，避免暂停 / 退出重复累计。
-   * 仅保存已产生的文本与语言信息，不保存 Key、录音、摄像头流或完整训练材料。
-   * @returns 有用户发言时返回快照；仅开场时返回 null。存储失败另外通知用户。
+   * 保存已提交发言和完整回复；内容和时长都未变化时复用已持久化的快照。
+   * @returns true 表示已保存，false 表示保存失败，null 表示当前会话没有可保存的记录。
    */
-  const saveSession = (): Session | null => {
-    if (!currentMessages.current.some((m) => m.role === 'user')) return null;
+  const saveSession = (): boolean | null => {
+    const date = lastSubmittedAt.current;
+    if (!date || isCurrentSessionDeleted.current) return null;
+    const messages = currentMessages.current;
+    const duration = elapsedRef.current;
+    if (
+      lastSavedSnapshot.current?.messages === messages &&
+      lastSavedSnapshot.current.duration === duration
+    )
+      return true;
     const record: Session = {
       id: sessionId.current,
-      date: new Date().toISOString(),
+      date,
       scene: sceneRef.current.id,
       title: sceneRef.current.title,
-      duration: elapsed,
-      messages: currentMessages.current.filter((m) => m.content.trim()),
-      words: wordsIn(currentMessages.current, settingsRef.current.practiceLanguage),
+      duration,
+      messages: messages.filter((m) => m.content.trim()),
+      words: wordsIn(messages, settingsRef.current.practiceLanguage),
       supportLanguage: settingsRef.current.supportLanguage,
       practiceLanguage: settingsRef.current.practiceLanguage,
       lessonId: sceneRef.current.lessonId,
@@ -656,11 +667,23 @@ export function usePractice(
       record,
       ...sessionsRef.current.filter((session) => session.id !== record.id),
     ].slice(0, MAX_SESSIONS);
-    // 持久化与通知在 React 状态更新器之外执行，避免 StrictMode 重放产生重复副作用。
     const isPersisted = saveSessions(next);
     setSessions(next);
-    if (!isPersisted) notify('浏览器存储空间不足，请先导出练习记录。');
-    return record;
+    if (isPersisted) lastSavedSnapshot.current = { messages, duration };
+    else notify('浏览器未能保存练习记录，请先导出对话。');
+    return isPersisted;
+  };
+  /** 删除当前会话的历史快照后，该会话结束前都不再自动写入。 */
+  const deleteSession = (id: string) => {
+    const remaining = sessionsRef.current.filter((session) => session.id !== id);
+    if (!saveSessions(remaining)) {
+      notify('浏览器未能删除练习记录，请重试。');
+      return;
+    }
+    const isCurrentSession = id === sessionId.current;
+    if (isCurrentSession) isCurrentSessionDeleted.current = true;
+    setSessions(remaining);
+    notify(isCurrentSession ? '练习记录已删除。开始新对话后会恢复自动保存。' : '练习记录已删除。');
   };
   /** 先保存旧会话再释放任务，按新场景和语言重置两区；自定义训练开场必须调用真实模型。 */
   const newSession = (nextScene = scene, nextSettings = settingsRef.current) => {
@@ -669,6 +692,9 @@ export function usePractice(
     settingsRef.current = nextSettings;
     needsInitialOpening.current = false;
     sessionId.current = id();
+    lastSubmittedAt.current = null;
+    lastSavedSnapshot.current = null;
+    isCurrentSessionDeleted.current = false;
     sceneRef.current = nextScene;
     setScene(nextScene);
     const opening = initial(nextScene, nextSettings);
@@ -680,6 +706,7 @@ export function usePractice(
     setReviewError('');
     setError('');
     setRecognitionError('');
+    elapsedRef.current = 0;
     setElapsed(0);
     setDraft('');
     setLatency(null);
@@ -790,6 +817,7 @@ export function usePractice(
       );
       currentMessages.current = next;
       setMessages(next);
+      saveSession();
     } catch (error) {
       if (epoch.current === version && !controller.signal.aborted)
         notify(error instanceof Error ? error.message : '翻译暂时不可用，请重试。');
@@ -818,19 +846,6 @@ export function usePractice(
     // 初次非默认语言只生成一次开场；后续语言与场景切换通过 newSession 显式启动。
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // 一轮成功完成后保存快照，刷新页面也能在历史中找到完整对话。
-  useEffect(() => {
-    if (
-      phase === 'ready' &&
-      messages.some((m) => m.role === 'user') &&
-      messages.at(-1)?.role === 'assistant' &&
-      !error
-    )
-      saveSession();
-    // 只在轮次完成时保存，计时器每秒跳动不触发持久化。
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, messages, error]);
 
   return {
     sessionId: sessionId.current,
@@ -878,7 +893,7 @@ export function usePractice(
     elapsed,
     latency,
     sessions,
-    setSessions,
+    deleteSession,
     submit,
     startListening,
     interruptListening,

@@ -1,6 +1,6 @@
 # 打包手机 App
 
-当前项目是 React + Vite Web App，尚未接入 Capacitor，也没有 Android / iOS 工程或安装包。本页是实施步骤，不代表已经完成打包或真机验收。
+项目已加入 Capacitor Android 构建配置、移动端直连模式和 Windows 打包脚本。共享工具链于 2026-11-18 安装到 F 盘；2026-11-22 已从最新源码重新生成 Android debug APK，通过签名与 SHA-256 核验并覆盖更新到手机。安装包路径、构建证据及待完成的真机测试见 [手机验证记录](./mobile-verification.md)。
 
 用户当前选择先在手机 App 填写个人模型 Key 直连，不先部署业务服务器。执行 agent 的任务、设置表与真机验收见 [手机测试与部署交接](../DEPLOYMENT.md)；公网 IP 中转作为后续可选路线，不要求先购买域名。
 
@@ -16,62 +16,35 @@
 
 ## Android 环境
 
-安装 Android Studio 及其要求的 Android SDK，使用匹配的 JDK。项目当前使用 Node.js 24。工具版本以当前 Capacitor 官方环境文档和所选版本要求为准。
+Windows 工具统一放在 `F:\Android-Toolchain`，供多个 Android 项目共用。当前打包脚本使用 Capacitor 8.6.2、JDK 21、Android SDK Platform 36 和 Node.js 24。SDK Manager 可在共享 SDK 下加装其他项目所需的平台版本。
 
-遵守项目的 D 盘约定：Android Studio、SDK、Gradle 缓存和模拟器数据优先配置在 D 盘，例如：
+| 内容                                   | 共享目录                                |
+| -------------------------------------- | --------------------------------------- |
+| 下载包                                 | `F:\Android-Toolchain\Downloads`        |
+| JDK 21 / `JAVA_HOME`                   | `F:\Android-Toolchain\Jdk\21`           |
+| SDK / `ANDROID_HOME`                   | `F:\Android-Toolchain\Sdk`              |
+| Gradle 缓存 / `GRADLE_USER_HOME`       | `F:\Android-Toolchain\gradle-cache`     |
+| Android 用户目录 / `ANDROID_USER_HOME` | `F:\Android-Toolchain\android-user`     |
+| npm 缓存                               | `F:\Android-Toolchain\npm-cache`        |
+| EasySpeak 构建副本与 APK               | `F:\Android-Toolchain\builds\EasySpeak` |
 
-| 项目                                   | 示例路径 / 配置            |
-| -------------------------------------- | -------------------------- |
-| Android Studio                         | `D:\Android\AndroidStudio` |
-| Android SDK / `ANDROID_HOME`           | `D:\Android\Sdk`           |
-| Gradle 缓存 / `GRADLE_USER_HOME`       | `D:\Android\Gradle`        |
-| Android 用户目录 / `ANDROID_USER_HOME` | `D:\Android\User`          |
-| 模拟器目录 / `ANDROID_AVD_HOME`        | `D:\Android\Avd`           |
-| npm 缓存                               | 项目内 `.npm-cache`        |
+SDK 已安装 Command-line Tools 22.0、Platform Tools 37.0.1、Platform 36 revision 2 和 Build Tools 36.0.0；Android Gradle Plugin 另自动安装了 Build Tools 35.0.0。JDK 为 Temurin 21.0.13+9。真机通过 USB 调试可用于验收。打包脚本在当前进程加载共享工具，退出时恢复原环境。
 
-这些变量应在首次下载 SDK / 创建模拟器或运行 Gradle 前配置。也可先用 USB 连接 Android 真机测试，暂不下载模拟器镜像。本轮没有安装上述大型工具。
+本机 Java 默认根证书库无法验证依赖下载源。F 盘的 `Use-AndroidToolchain.ps1` 仅在当前 PowerShell 进程启用共享工具与缓存，并让 Java、Node 使用 Windows 已信任的系统证书；保留 TLS 校验和已有 Java 自定义 trustStore。未修改系统或用户全局环境。其他项目也可使用此初始化脚本，再运行各自的 Gradle Wrapper。
 
 ## 接入步骤
 
-以下命令在 `D:\Project\EnglishTalk\easy-speak` 执行。Capacitor 组件保持同一大版本；本例使用当前文档对应的 8，实际安装后提交锁文件。
+在仓库根目录执行打包脚本。
 
 ```powershell
-npm install @capacitor/core@8 @capacitor/android@8 --cache .npm-cache
-npm install -D @capacitor/cli@8 --cache .npm-cache
-npx cap init
+. 'F:\Android-Toolchain\Use-AndroidToolchain.ps1'
+Set-Location -LiteralPath 'D:\Project\EnglishTalk'
+.\Build-EasySpeakAndroid.ps1
 ```
 
-初始化填写 App 名称和稳定的包名，例如名称 `轻松说`、示例包名 `com.example.easy-speak`；正式包名应在发布前确定。检查生成的配置，网页资源目录设为 `dist`：
+脚本在 F 盘创建独立构建副本，复制白名单内的源码和配置，安装依赖，执行 `npm run build:android`，生成原生工程并声明相机与麦克风权限，最后运行 `assembleDebug`。测试包名为 `com.example.easyspeak`，显示名为「轻松说」。成功时输出 `app-debug.apk` 的路径和 SHA-256。需要使用已有工具目录时，脚本接受 `-ToolDirectory`、`-JdkDirectory` 和 `-SdkDirectory`。
 
-```ts
-import type { CapacitorConfig } from '@capacitor/cli';
-
-const config: CapacitorConfig = {
-  appId: 'com.example.easy-speak',
-  appName: '轻松说',
-  webDir: 'dist',
-};
-
-export default config;
-```
-
-完成前述模型与媒体适配后，构建并创建 Android 工程：
-
-```powershell
-npm run build
-npx cap add android
-npx cap sync android
-npx cap open android
-```
-
-在 Android Studio 中配置 SDK / 构建 JDK，连接已启用 USB 调试的手机并运行。也可以在 Android 工程中构建测试 APK：
-
-```powershell
-cd android
-.\gradlew.bat assembleDebug
-```
-
-标准产物路径为 `android\app\build\outputs\apk\debug\app-debug.apk`。测试包可安装到自己的手机，不等同于已完成商店发布。后续每次修改前端，重新执行 `npm run build` 和 `npx cap sync android` 后再构建原生包。
+安装后，手机可在 **设置 → 模型连接** 填写供应商、接口、API Key 和模型。Android 构建使用个人直连模式。API Key 保留在当前 App 会话，完全退出或进程被系统回收后可能需要重新填写。MiniMax 语音可在「语音与偏好」单独配置。
 
 ## 发布与验证
 

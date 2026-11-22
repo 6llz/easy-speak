@@ -35,6 +35,7 @@ test('首屏直接显示对话和两个辅导框，不再生成独立开始按�
       onToggleAudio: () => {},
       onSavePhrase: () => {},
       onOpenTranscript: () => {},
+      onEndSession: () => {},
       notify: () => {},
       isOverlayOpen: false,
     }),

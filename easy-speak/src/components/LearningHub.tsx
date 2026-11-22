@@ -10,6 +10,7 @@ import {
   Headphones,
   History,
   Languages,
+  Lightbulb,
   MessageCircle,
   Settings2,
   Sparkles,
@@ -50,6 +51,7 @@ type LearningHubProps = {
   onOpenLanguages: () => void;
   onOpenPhrases: () => void;
   onOpenHistory: () => void;
+  onOpenHelp: () => void;
   onSpeak: (text: string, language: string) => void;
   onStopSpeaking: () => void;
   notify: (message: string) => void;
@@ -74,6 +76,7 @@ export function LearningHub({
   onOpenLanguages,
   onOpenPhrases,
   onOpenHistory,
+  onOpenHelp,
   onSpeak,
   onStopSpeaking,
   notify,
@@ -413,6 +416,12 @@ export function LearningHub({
               title="模型、语音与主题"
               description="选喜欢的声音，按自己的节奏练"
               onClick={onOpenSettings}
+            />
+            <ActionRow
+              icon={Lightbulb}
+              title="练习帮助"
+              description="了解对话、两个教练与语音操作"
+              onClick={onOpenHelp}
             />
             <div className="learning-note">
               资料与进度保存在当前浏览器，暂无登录和跨设备同步。示范会话不计入学习统计；点评基于转写文字，不评估发音。

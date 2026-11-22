@@ -1,0 +1,9 @@
+{
+  "appId": "com.example.easyspeak",
+  "appName": "轻松说",
+  "webDir": "dist-android",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": false
+  }
+}

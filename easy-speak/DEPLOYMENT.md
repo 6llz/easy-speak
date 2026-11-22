@@ -1,6 +1,6 @@
 # 手机测试与部署交接
 
-更新时间：2026-10-18。适用源码目录：Windows `D:\Project\EnglishTalk\easy-speak`；传到 Linux 后以包含 `package.json` 的项目根目录为准。
+更新时间：2026-11-22。适用源码目录：Windows `D:\Project\EnglishTalk\easy-speak`；传到 Linux 后以包含 `package.json` 的项目根目录为准。
 
 ## 1. 本次采用的方案
 
@@ -13,7 +13,7 @@
 
 云服务器为 Ubuntu 24、没有域名。如仍由云端 agent 操作，本阶段可以仅把云服务器作为 Android 构建机，交付 APK；不必因此安装网站服务器、数据库、VPN 或申请域名。需要模型中转时再执行第 8 节。
 
-**当前源码是 Web App，尚没有 Capacitor、Android 原生工程或生产后端入口。本文是给执行 agent 的交接任务，不能把下述待完成的适配当成已有能力，也不能直接宣称 APK 已生成。**
+源码保留 Web App，并已加入 Android 打包配置。Windows 打包脚本使用 F 盘共享工具链生成原生工程和 APK，实际设备验收见第 6 节。
 
 ## 2. 执行 agent 的工作范围
 
@@ -29,7 +29,7 @@
 4. 在个人直连模式中，不再依赖电脑的 `/api/v1/minimax`；缺少本机代理时不得把 `127.0.0.1:5173` 当成远程接口，也不得自动索取开发机的凭据。
 5. 生成可安装的 Android debug APK，附 SHA-256、版本与实测清单。debug APK 只供本人测试，正式发布另做签名与发布配置。
 
-如没有 Android SDK / JDK，先建立受控目录再安装匹配版本。Windows 的下载、缓存、SDK、Gradle 和产物都放 D 盘；Linux 构建机放项目或 `/opt/easy-speak` 下。不要上传本机 `node_modules`，在目标平台执行 `npm ci`。
+Windows 使用 `F:\Android-Toolchain` 存放下载、共享 JDK、SDK 和 Gradle 缓存。各项目的构建副本分开存放。Linux 构建机应在本机用包管理器安装依赖。
 
 ## 3. 现有代码与配置
 
@@ -54,33 +54,13 @@
 
 ## 4. Android 构建流程
 
-完整工具配置与命令见 [打包手册](./docs/packaging.md)。默认沿用手册的 Capacitor 8，同一套依赖保持同一大版本；实施时核对该版本官方要求的 JDK / Android SDK，不凭印象混用。
-
-需要执行 agent 补齐的文件包括：`capacitor.config.ts`、Android 工程与权限配置、必要的原生媒体适配、可重复执行的构建脚本和验证记录。App 显示名使用「轻松说」；包名尚未由用户确定时可使用测试包名 `com.example.easy-speak`，不得直接作为正式发行身份。
+完整工具配置见 [打包手册](./docs/packaging.md)。Windows 在仓库根目录运行：
 
 ```powershell
-# 在项目根目录；先完成原生适配，不要只运行这些命令就宣布语音可用。
-npm ci --cache .npm-cache
-npm run format:check
-npm run lint
-npm test
-npm run build
-
-# 仅首次接入时安装、初始化；已有工程不要重复 cap init / cap add。
-npm install @capacitor/core@8 @capacitor/android@8 --cache .npm-cache
-npm install -D @capacitor/cli@8 --cache .npm-cache
-npx cap init
-npx cap add android
-npx cap sync android
-
-# JDK 与 SDK 就绪后
-cd android
-.\gradlew.bat assembleDebug
+.\Build-EasySpeakAndroid.ps1
 ```
 
-Linux 构建机使用相同 npm 检查，Gradle 命令改为 `./gradlew assembleDebug`。先设置 Android SDK 与 Gradle 缓存位置；无须为编译安装模拟器镜像。后续修改只需重新构建 Web 资源、`cap sync android` 并运行 Gradle。
-
-标准产物：`android/app/build/outputs/apk/debug/app-debug.apk`。交付时写明文件绝对路径和 SHA-256，不把没有执行的真机测试标成通过。
+脚本固定 Capacitor 组件版本，使用 `capacitor.config.json` 生成测试包名 `com.example.easyspeak` 的原生工程，并加入运行时媒体权限声明。成功后打印 `app-debug.apk` 的完整路径和 SHA-256。正式发行前需分配正式包名和签名。
 
 ## 5. 安装包的凭据与网络要求
 
@@ -150,6 +130,8 @@ sudo certbot certonly --staging \
 
 ## 9. 当前交付状态
 
-已有：React 页面、个人 Key 直连、MiniMax ASR / TTS、离线测试、生产 Web 构建与构建凭据检查。
+共享工具链位于 `F:\Android-Toolchain`。2026-11-22 已从最新工作区源码重新生成 debug APK，完成签名、SHA-256、资源一致性和包内容检查。最新交付文件为 `F:\Android-Toolchain\builds\EasySpeak\releases\2026-11-22\EasySpeak-1.0-debug.apk`，SHA-256 为 `57362D8A8602D06C74218F6C19D567AE53770517912BCBF61563D49033310437`。
 
-待执行 agent 完成：Android 原生适配、APK 构建和手机验收。云生产 API、IP 证书与公网部署仅为后续路线，尚未创建或执行。
+已用 `adb install -r` 覆盖更新 OnePlus PJX110（Android 16）上的旧包，未卸载或清空应用数据；启动成功，回读安装包哈希与交付文件一致。交流页一屏布局、返回箭头、挂断回主页及重新进入后保留结束状态已通过真机检查。个人 Key 直连、真实录音 / 朗读、实际输入法或拒绝权限后的打字验证仍待完成。完整证据见 [手机验证记录](./docs/mobile-verification.md)。新的 PowerShell 会话先按 [打包手册](./docs/packaging.md) 初始化 F 盘共享工具链，再运行构建脚本。
+
+11 月 19 日的布局与返回导航改动已包含在上述 APK 和手机安装版本中。随后取消挂断完成提示的修改仅更新源码，尚未再次打包。

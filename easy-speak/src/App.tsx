@@ -1,23 +1,19 @@
 import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import {
   ArrowDownToLine,
+  ArrowLeft,
   ArrowRight,
   BookOpen,
   Check,
   ChevronDown,
   Coffee,
-  History,
   Keyboard,
   Lightbulb,
   Languages,
-  Menu,
-  MessageCircle,
   Mic,
-  Palette,
   Plane,
   Plus,
   Settings2,
-  ShieldCheck,
   Sparkles,
   X,
   BriefcaseBusiness,
@@ -35,16 +31,9 @@ import type { LanguagePair } from './lib/languages';
 import { Modal } from './components/Modal';
 import type { SettingsTab } from './components/SettingsDialog';
 import { usePractice } from './hooks/usePractice';
-import { MAX_SAVED_PHRASES, PROVIDERS, SCENES } from './lib/core';
+import { MAX_SAVED_PHRASES, SCENES } from './lib/core';
 import type { Settings } from './lib/core';
-import {
-  downloadText,
-  readPhrases,
-  readSettings,
-  savePhrases,
-  saveSessions,
-  saveSettings,
-} from './lib/storage';
+import { downloadText, readPhrases, readSettings, savePhrases, saveSettings } from './lib/storage';
 import type { SavedPhrase } from './lib/storage';
 import {
   applyTheme,
@@ -75,7 +64,6 @@ const loadCustomTrainingDialog = () =>
   }));
 
 type Sheet =
-  | 'menu'
   | 'scenes'
   | 'custom-training'
   | 'languages'
@@ -93,7 +81,13 @@ const SCENE_ICONS: Record<string, LucideIcon> = {
 };
 
 /** 单屏语音 App：次要功能通过弹层进入，陪练界面保持固定布局。 */
-export default function App({ initialSettings }: { initialSettings?: Settings }) {
+export default function App({
+  initialSettings,
+  allowLocalMiniMax = true,
+}: {
+  initialSettings?: Settings;
+  allowLocalMiniMax?: boolean;
+}) {
   const [settings, setSettings] = useState<Settings>(initialSettings || readSettings);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState<SettingsTab>('models');
@@ -250,10 +244,10 @@ export default function App({ initialSettings }: { initialSettings?: Settings })
         <header className="voice-header">
           <button
             className="header-button"
-            aria-label="打开会话菜单"
-            onClick={() => setSheet('menu')}
+            aria-label="返回主界面"
+            onClick={() => handleNavigate('courses')}
           >
-            <Menu size={23} />
+            <ArrowLeft size={23} />
           </button>
           <button className="scene-pill" onClick={() => setSheet('scenes')}>
             <SceneIcon size={16} />
@@ -307,29 +301,12 @@ export default function App({ initialSettings }: { initialSettings?: Settings })
             )
             .map((phrase) => phrase.en)}
           onOpenTranscript={() => setSheet('transcript')}
+          onEndSession={() => handleNavigate('courses')}
           notify={notify}
           isOverlayOpen={isSettingsOpen || sheet !== null || view !== 'conversation'}
           isScreenActive={view === 'conversation'}
           preserveReplyOnOverlay={isSettingsOpen}
         />
-        <div className="app-bottom-label">
-          <button onClick={() => handleNavigate('courses')} aria-label="进入学习中心">
-            <BookOpen size={12} />
-            学习中心
-          </button>
-          <i />
-          {isDemo ? (
-            <button onClick={() => handleOpenSettings()}>
-              示范体验 · 连接我的模型
-              <ArrowRight size={10} />
-            </button>
-          ) : (
-            <button onClick={() => handleOpenSettings()}>
-              {PROVIDERS[settings.provider].name} · {settings.level}
-              <Settings2 size={10} />
-            </button>
-          )}
-        </div>
       </div>
       {view !== 'conversation' && (
         <DeferredFeature
@@ -358,6 +335,7 @@ export default function App({ initialSettings }: { initialSettings?: Settings })
               practice.stopSpeaking();
               setSheet('history');
             },
+            onOpenHelp: () => setSheet('help'),
             onSpeak: practice.replay,
             onStopSpeaking: practice.stopSpeaking,
             notify,
@@ -372,6 +350,7 @@ export default function App({ initialSettings }: { initialSettings?: Settings })
           onClose={() => setIsSettingsOpen(false)}
           featureProps={{
             settings,
+            allowLocalMiniMax,
             selectedTheme,
             initialTab: settingsTab,
             onThemeChange: handleThemeChange,
@@ -450,66 +429,6 @@ export default function App({ initialSettings }: { initialSettings?: Settings })
           }}
         />
       )}
-      {sheet === 'menu' && (
-        <Modal
-          title="你的陪练空间"
-          description="按自己的节奏，一次聊一点。"
-          onClose={() => setSheet(null)}
-          className="menu-modal"
-        >
-          <div className="app-menu">
-            <button onClick={() => handleNavigate('courses')}>
-              <BookOpen size={19} />
-              <span>课程、复习与成长</span>
-              <ArrowRight size={16} />
-            </button>
-            <button
-              onClick={() => {
-                practice.newSession();
-                setSheet(null);
-              }}
-            >
-              <Plus size={19} />
-              <span>开启新对话</span>
-              <ArrowRight size={16} />
-            </button>
-            <button onClick={() => setSheet('transcript')}>
-              <MessageCircle size={19} />
-              <span>这次的聊天记录</span>
-              <ArrowRight size={16} />
-            </button>
-            <button onClick={() => setSheet('history')}>
-              <History size={19} />
-              <span>练习记录</span>
-              <span className="menu-count">{practice.sessions.length}</span>
-            </button>
-            <button onClick={() => setSheet('phrases')}>
-              <BookOpen size={19} />
-              <span>表达收藏</span>
-              <span className="menu-count">{phrases.length}</span>
-            </button>
-            <button onClick={() => setSheet('help')}>
-              <Lightbulb size={19} />
-              <span>怎么练习更自在</span>
-              <ArrowRight size={16} />
-            </button>
-            <button
-              onClick={() => {
-                setSheet(null);
-                handleOpenSettings('theme');
-              }}
-            >
-              <Palette size={19} />
-              <span>主题配色</span>
-              <ArrowRight size={16} />
-            </button>
-          </div>
-          <div className="menu-privacy">
-            <ShieldCheck size={13} />
-            练习记录仅保存在当前浏览器
-          </div>
-        </Modal>
-      )}
       {sheet === 'transcript' && (
         <Modal
           title="我们刚刚聊了什么"
@@ -574,15 +493,8 @@ export default function App({ initialSettings }: { initialSettings?: Settings })
             onClose={() => setSheet(null)}
             featureProps={{
               sessions: practice.sessions,
-              onDelete: (id) => {
-                const next = practice.sessions.filter((session) => session.id !== id);
-                practice.setSessions(next);
-                notify(
-                  saveSessions(next)
-                    ? '练习记录已删除。'
-                    : '已从当前页面删除，但浏览器未能保存更改。',
-                );
-              },
+              currentSessionId: practice.sessionId,
+              onDelete: practice.deleteSession,
               onStart: () => {
                 setSheet(null);
                 handleNavigate('conversation');
@@ -650,7 +562,7 @@ export default function App({ initialSettings }: { initialSettings?: Settings })
                 <h3>一句你，一句{practice.companionName}</h3>
                 <p>
                   进入页面就可以聊，听完{practice.companionName}
-                  说话后自动轮到你。停说后继续下一轮；需要休息时可以暂停，聊完点红色挂断按钮。
+                  说话后自动轮到你。停说后继续下一轮；需要休息时可以暂停，聊完点红色挂断按钮返回主界面。
                 </p>
               </div>
             </div>
@@ -671,7 +583,9 @@ export default function App({ initialSettings }: { initialSettings?: Settings })
               </span>
               <div>
                 <h3>按舒服的方式聊</h3>
-                <p>随时切换文字输入，设置语速和难度。场景在顶部选择，记录与收藏收在左上角菜单。</p>
+                <p>
+                  随时切换文字输入，设置语速和难度。场景在顶部选择；点左上角箭头回到主界面，查看记录与收藏。
+                </p>
               </div>
             </div>
             <div className="tip-note">

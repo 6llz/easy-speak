@@ -38,17 +38,17 @@ export function useMediaSession({
   const cameraController = useRef(new CameraController());
   const practiceRef = useRef(practice);
   practiceRef.current = practice;
-  const notifyRef = useRef(notify);
-  notifyRef.current = notify;
   const previousSession = useRef(practice.sessionId);
   const greetedSession = useRef<string | null>(null);
   const interruptedPhase = useRef<Phase>('ready');
   const requestedSpeech = useRef<string | null>(null);
   const isMediaOverlayOpen = isOverlayOpen || !isScreenActive;
-  const sessionState = getSessionState({ intent, isHidden, isOverlayOpen: isMediaOverlayOpen });
-  const previousState = useRef(sessionState);
+  // 识别失败只暂停语音。切回语音时先让文字对话中已发出的请求完成。
+  const shouldPauseForRecognition =
+    !isTextMode && !!practice.recognitionError && practice.phase === 'ready';
+  const sessionIntent = shouldPauseForRecognition && intent === 'active' ? 'paused' : intent;
   const policy: SessionPolicy = {
-    intent,
+    intent: sessionIntent,
     isOverlayOpen: isMediaOverlayOpen,
     isHidden,
     isTextMode,
@@ -58,6 +58,8 @@ export function useMediaSession({
     hasDraft: !!practice.draft.trim(),
     hasPendingReply: practice.hasPendingReply,
   };
+  const sessionState = getSessionState(policy);
+  const previousState = useRef(sessionState);
   const policyRef = useRef(policy);
   policyRef.current = policy;
 
@@ -202,13 +204,6 @@ export function useMediaSession({
   }, [practice.phase]);
 
   useEffect(() => {
-    if (intent === 'active' && practice.recognitionError) {
-      policyRef.current.intent = 'paused';
-      setIntent('paused');
-    }
-  }, [intent, practice.recognitionError]);
-
-  useEffect(() => {
     if (isTextMode && practice.phase === 'listening') practiceRef.current.interruptListening();
   }, [isTextMode, practice.phase]);
 
@@ -235,6 +230,7 @@ export function useMediaSession({
         streamRef.current = null;
         setIsCameraOn(false);
         setIsCameraLoading(false);
+        practiceRef.current.saveSession();
       }
     };
     const handlePageHide = () => {
@@ -284,6 +280,7 @@ export function useMediaSession({
   const pauseSession = () => {
     policyRef.current.intent = 'paused';
     setIntent('paused');
+    practice.saveSession();
   };
   /** 恢复受用户手势与开麦门控约束；已结束的会话通过新会话重新进入。 */
   const resumeSession = () => {
@@ -306,10 +303,9 @@ export function useMediaSession({
     policyRef.current.intent = 'ended';
     setIntent('ended');
     practice.abort();
-    const record = practice.saveSession();
+    practice.saveSession();
     practice.setDraft('');
     stopCamera();
-    notifyRef.current(record ? '这次陪练结束了，练习记录已保留。' : '这次陪练结束了，休息一下吧。');
   };
   /** 听例句 / 改进表达前先停识别，保留草稿；挂断、后台与待恢复主回复期间拒绝播放。 */
   const speakOnDemand = (text: string): boolean => {
@@ -332,6 +328,7 @@ export function useMediaSession({
   };
   return {
     sessionState,
+    isPausedForRecognition: shouldPauseForRecognition && intent === 'active',
     isCameraOn,
     isCameraLoading,
     videoRef,
